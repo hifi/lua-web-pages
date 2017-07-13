@@ -69,18 +69,6 @@ local function quote(s)
     return sq .. s .. eq
 end
 
-local htmlents = {
-    ['&'] = '&amp;',
-    ['<'] = '&lt;',
-    ['>'] = '&gt;',
-    ['"'] = '&quot;',
-    ["'"] = '&#039;'
-}
-
-function _htmlescape(s)
-    s:gsub([=[["><'&]]=], ents)
-end
-
 function M.compile(tpl)
     local chunks = {}
     local out = {}
@@ -106,7 +94,7 @@ function M.compile(tpl)
         end
 
         -- pull modifiers
-        if tpl:match('^[=-]', ostop + 1) then
+        if tpl:match('^[=]', ostop + 1) then
             mod = tpl:sub(ostop + 1, ostop + 1)
             ostop = ostop + 1
         end
@@ -143,8 +131,6 @@ function M.compile(tpl)
             trim = false
         else
             if chunk.mod == '=' then
-                out[#out + 1] = ';io.write(' .. chunk.code:gsub([=[["><'&]]=], htmlents) .. ');'
-            elseif chunk.mod == '-' then
                 out[#out + 1] = ';io.write(' .. chunk.code .. ');'
             else
                 out[#out + 1] = chunk.code
