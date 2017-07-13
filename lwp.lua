@@ -83,54 +83,63 @@ end
 
 function M.compile(tpl)
     local chunks = {}
-    local start, stop, trim, mod
-    local p = 1
     local out = {}
 
-    while p < #tpl do
-        start, stop = tpl:find('<%', p, true)
-        trim = false
-        mod = nil
+    local ostart, ostop = nil, 0
+    local cstart, cstop = nil, 0
+
+    while cstop ~= nil and cstop < #tpl do
+        ostart = cstop + 1
+        ostart, ostop = tpl:find('<%', ostart, true)
+        local trim = false
+        local mod = nil
 
         -- trailing text
-        if not start then
-            chunks[#chunks + 1] = { text = tpl:sub(p, #tpl) }
+        if not ostart then
+            chunks[#chunks + 1] = { text = tpl:sub(cstop + 1, #tpl) }
             break
         end
 
         -- leading text
-        if start ~= p then
-            chunks[#chunks + 1] = { text = tpl:sub(p, start - 1) }
+        if ostart > cstop + 1 then
+            chunks[#chunks + 1] = { text = tpl:sub(cstop + 1, ostart - 1) }
         end
 
-        p = stop + 1
-
         -- pull modifiers
-        if tpl:match('^[=-]', p) then
-            mod = tpl:sub(p, p)
-            p = p + 1
+        if tpl:match('^[=-]', ostop + 1) then
+            mod = tpl:sub(ostop + 1, ostop + 1)
+            ostop = ostop + 1
         end
 
         -- find non-quoted closing tag
         repeat
-            start, stop = tpl:find('%>', p, true)
-        until start == nil or not in_string(tpl, p, start)
+            cstart = cstop + 1
+            cstart, cstop = tpl:find('%>', cstart, true)
+        until cstart == nil or not in_string(tpl, ostop + 1, cstart - 1)
 
-        -- pull postfix (trim) modifier
-        if tpl:sub(start - 1, start - 1) == '-' then
-            start = start - 1
-            trim = true
+        if cstart then
+            -- pull postfix (trim) modifier (if not EOF)
+            if tpl:sub(cstart - 1, cstart - 1) == '-' then
+                cstart = cstart - 1
+                trim = true
+            end
+        else
+            -- allow EOF to close
+            cstart = #tpl
         end
 
-        chunks[#chunks + 1] = { code = tpl:sub(p, start - 1), mod = mod, trim = trim }
-        p = stop + 1
+        chunks[#chunks + 1] = { code = tpl:sub(ostop + 1, cstart - 1), mod = mod, trim = trim }
     end
 
     for i=1, #chunks do
         local chunk = chunks[i]
 
         if chunk.text and #chunk.text > 0 then
-            out[#out + 1] = ';io.write(' .. quote(chunk.text) .. ');'
+            if chunk.text == '\n' then
+                out[#out + 1] = ';print();'
+            else
+                out[#out + 1] = ';io.write(' .. quote(chunk.text) .. ');'
+            end
         else
             -- FIXME: trim is currently ignored
             if chunk.mod == '=' then
