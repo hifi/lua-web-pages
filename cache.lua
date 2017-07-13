@@ -25,7 +25,12 @@ M.loadfile = function (filename, tag, modname)
 
         if lwp and filename:match('.lwp$') then
             print('Cache: detected Lua Web Pages file, pre-processing')
-            s = lwp.compile(s)
+            local success
+            success, s = pcall(lwp.compile, s)
+            if not success then
+                print('Cache: failed to compile LWP: ' .. s)
+                return nil, e
+            end
         else
             -- comment shebang if exists
             s = s:gsub('^#!', '-- #!', 1)
