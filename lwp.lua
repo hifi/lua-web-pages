@@ -127,7 +127,10 @@ function M.compile(tpl)
             if not trim and chunk.text:sub(1,1) == '\n' then
                 out[#out + 1] = ';print();'
             end
-            out[#out + 1] = ';io.write(' .. quote(chunk.text) .. ');'
+            -- plain new lines are ignored anyway
+            if (chunk.text ~= '\n') then
+                out[#out + 1] = ';io.write(' .. quote(chunk.text) .. ');'
+            end
             trim = false
         else
             if chunk.mod == '=' then
