@@ -131,17 +131,17 @@ function M.compile(tpl)
         chunks[#chunks + 1] = { code = tpl:sub(ostop + 1, cstart - 1), mod = mod, trim = trim }
     end
 
+    local trim = false
     for i=1, #chunks do
         local chunk = chunks[i]
 
         if chunk.text and #chunk.text > 0 then
-            if chunk.text == '\n' then
+            if not trim and chunk.text:sub(1,1) == '\n' then
                 out[#out + 1] = ';print();'
-            else
-                out[#out + 1] = ';io.write(' .. quote(chunk.text) .. ');'
             end
+            out[#out + 1] = ';io.write(' .. quote(chunk.text) .. ');'
+            trim = false
         else
-            -- FIXME: trim is currently ignored
             if chunk.mod == '=' then
                 out[#out + 1] = ';io.write(' .. chunk.code:gsub([=[["><'&]]=], htmlents) .. ');'
             elseif chunk.mod == '-' then
@@ -149,6 +149,8 @@ function M.compile(tpl)
             else
                 out[#out + 1] = chunk.code
             end
+
+            trim = chunk.trim
         end
     end
 
