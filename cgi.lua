@@ -47,7 +47,13 @@ for i,k in ipairs(vars) do
 end
 
 cgi.get = cgi.parsequery(cgi.params['QUERY_STRING'] or '')
-cgi.post = {}
+
+-- parse POST if it's in the correct format
+if cgi.params['REQUEST_METHOD'] == 'POST' and cgi.params['CONTENT_TYPE'] == 'application/x-www-form-urlencoded' then
+    cgi.post = cgi.parsequery(io.read('a'))
+else
+    cgi.post = {}
+end
 
 local normalize_header = function(name)
     local parts = {}
