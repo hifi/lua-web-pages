@@ -179,8 +179,8 @@ static int lua_cache_loadfile(lua_State *L)
     const char *filename;
     const char *script;
 
-    // XXX: we are ignoring: mode = lua_tostring(L, -1);
-    filename = lua_tostring(L, -2);
+    filename = lua_tostring(L, 1);
+    // XXX: we are ignoring: mode = lua_tostring(L, 2);
 
     script = getenv("SCRIPT_FILENAME");
 
