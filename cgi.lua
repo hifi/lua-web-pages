@@ -25,9 +25,9 @@ local vars = {
 }
 
 cgi.urldecode = function(s)
-    return s:gsub('%%(%x%x)', function(hex)
+    return (s:gsub('+', ' '):gsub('%%(%x%x)', function(hex)
         return string.char(tonumber(hex, 16))
-    end)
+    end))
 end
 
 cgi.parsequery = function(qs)
