@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define NO_FCGI_DEFINES
 #include <fcgi_stdio.h>
@@ -19,20 +20,38 @@ void redir_install(lua_State *L);
 #include "config.h"
 #include "cache.h"
 
+static void *l_alloc (void *memory_limit, void *ptr, size_t osize, size_t nsize)
+{
+    if (nsize == 0) {
+	free(ptr);
+	return NULL;
+    } else if (nsize > (intptr_t)memory_limit) {
+        return NULL;
+    }
+
+    return realloc(ptr, nsize);
+}
+
 int main(int argc, char **argv)
 {
     lua_State *L = NULL;
     int debug = 0;
+    intptr_t memory_limit = 64 * 1024 * 1024;
     int reuse = 0;
+
     const char *bootstrap_path = NULL;
 
     int c;
 
     /* parse options */
-    while ((c = getopt(argc, argv, "dr:")) >= 0) {
+    while ((c = getopt(argc, argv, "dm:r:")) >= 0) {
         switch (c) {
             case 'd':
                 debug = 1;
+                break;
+
+            case 'm':
+                memory_limit = strtol(optarg, NULL, 10) * 1024 * 1024;
                 break;
 
             case 'r':
@@ -58,7 +77,17 @@ int main(int argc, char **argv)
 
     while (1) {
         if (!L) {
-            L = luaL_newstate();
+            if (memory_limit > 0) {
+                L = lua_newstate(l_alloc, (void *)memory_limit);
+            } else {
+                L = luaL_newstate();
+            }
+
+            if (!L) {
+                fprintf(stderr, "Failed to initialize Lua, aborting\n");
+                break;
+            }
+
             luaL_openlibs(L);
 
 #ifdef WITH_CACHE
@@ -109,20 +138,24 @@ int main(int argc, char **argv)
         /* exec handler (bootstrap or script) */
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
             FCGI_fprintf(FCGI_stderr, "%s\n", lua_tostring(L, 1));
+
+            /* always close state if we get an error (could be OOM) */
+            lua_close(L);
+            L = NULL;
         }
 next:
         /* flush FCGI request */
         FCGI_Finish();
 
         // XXX: should be number of requests to process until throwing away the state
-        if (!reuse) {
+        if (!reuse && L) {
             /* free state in-between requests */
             lua_close(L);
             L = NULL;
         }
     }
 
-    lua_close(L);
+    if (L) lua_close(L);
 
 #ifdef WITH_CACHE
     cache_free();
