@@ -24,13 +24,30 @@ local vars = {
     'HTTP_REFERER',
 }
 
-cgi.get = {}
-cgi.post = {}
+cgi.urldecode = function(s)
+    return s:gsub('%%(%x%x)', function(hex)
+        return string.char(tonumber(hex, 16))
+    end)
+end
+
+cgi.parsequery = function(qs)
+    local ret = {}
+
+    for frag in qs:gmatch('[^&]+') do
+        local k,v = frag:match('([^=]+)=(.*)')
+        ret[k] = cgi.urldecode(v)
+    end
+
+    return ret
+end
 
 cgi.params = {}
 for i,k in ipairs(vars) do
     cgi.params[k] = os.getenv(k)
 end
+
+cgi.get = cgi.parsequery(cgi.params['QUERY_STRING'] or '')
+cgi.post = {}
 
 local normalize_header = function(name)
     local parts = {}
