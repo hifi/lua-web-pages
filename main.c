@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     lua_State *L = NULL;
     int debug = 0;
     intptr_t memory_limit = 64 * 1024 * 1024;
-    int reuse = 0;
+    int reuse = 0, nreq = 0;
 
     const char *bootstrap_path = NULL;
 
@@ -104,13 +104,13 @@ int main(int argc, char **argv)
 
             /* install I/O redirection */
             redir_install(L);
+        }
 
-            /* preload bootstrap script */
-            if (bootstrap_path) {
-                if (cache_loadfile(L, bootstrap_path, "") != LUA_OK) {
-                    fprintf(stderr, "Loading bootstrap failed: %s\n", lua_tostring(L, 1));
-                    break;
-                }
+        /* preload bootstrap script */
+        if (bootstrap_path) {
+            if (cache_loadfile(L, bootstrap_path, "") != LUA_OK) {
+                fprintf(stderr, "Loading bootstrap failed: %s\n", lua_tostring(L, 1));
+                break;
             }
         }
 
@@ -137,21 +137,28 @@ int main(int argc, char **argv)
 
         /* exec handler (bootstrap or script) */
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-            FCGI_fprintf(FCGI_stderr, "%s\n", lua_tostring(L, 1));
+            if (lua_isstring(L, 1)) {
+                FCGI_fprintf(FCGI_stderr, "%s\n", lua_tostring(L, 1));
+            } else {
+                FCGI_fprintf(FCGI_stderr, "Script call failed badly, what do?\n");
+            }
 
             /* always close state if we get an error (could be OOM) */
             lua_close(L);
             L = NULL;
         }
 next:
+        nreq++;
+
         /* flush FCGI request */
         FCGI_Finish();
 
-        // XXX: should be number of requests to process until throwing away the state
-        if (!reuse && L) {
+        if (nreq > reuse && reuse != -1 && L) {
+            fprintf(stderr, "throwing away state\n");
             /* free state in-between requests */
             lua_close(L);
             L = NULL;
+            nreq = 0;
         }
     }
 
