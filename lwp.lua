@@ -134,7 +134,7 @@ function M.compile(tpl)
             trim = false
         else
             if chunk.mod == '=' then
-                out[#out + 1] = ';io.write(((' .. chunk.code .. '):gsub([=[["><\'&]]=],{["&"]="&amp;",["<"]="&lt;",[">"]="&gt;",["\\""]="&quot;",["\'"]="&#039;"})));'
+                out[#out + 1] = ';io.write(tostring(((' .. chunk.code .. ') or ""):gsub([=[["><\'&]]=],{["&"]="&amp;",["<"]="&lt;",[">"]="&gt;",["\\""]="&quot;",["\'"]="&#039;"})));'
             elseif chunk.mod == '-' then
                 out[#out + 1] = ';io.write(' .. chunk.code .. ');'
             else
