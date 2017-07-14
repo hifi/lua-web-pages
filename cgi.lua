@@ -30,6 +30,7 @@ cgi.urldecode = function(s)
     end))
 end
 
+-- XXX: handle nesting[][]
 cgi.parsequery = function(qs)
     local ret = {}
 
