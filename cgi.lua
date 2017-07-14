@@ -41,15 +41,15 @@ cgi.parsequery = function(qs)
     return ret
 end
 
-cgi.params = {}
+cgi.env = {}
 for i,k in ipairs(vars) do
-    cgi.params[k] = os.getenv(k)
+    cgi.env[k] = os.getenv(k)
 end
 
-cgi.get = cgi.parsequery(cgi.params['QUERY_STRING'] or '')
+cgi.get = cgi.parsequery(cgi.env['QUERY_STRING'] or '')
 
 -- parse POST if it's in the correct format
-if cgi.params['REQUEST_METHOD'] == 'POST' and cgi.params['CONTENT_TYPE'] == 'application/x-www-form-urlencoded' then
+if cgi.env['REQUEST_METHOD'] == 'POST' and cgi.env['CONTENT_TYPE'] == 'application/x-www-form-urlencoded' then
     cgi.post = cgi.parsequery(io.read('a'))
 else
     cgi.post = {}
@@ -65,7 +65,7 @@ local normalize_header = function(name)
     return table.concat(parts, '-')
 end
 
-cgi.self = cgi.params['SCRIPT_FILENAME'] or ''
+cgi.self = cgi.env['SCRIPT_FILENAME'] or ''
 cgi.basename = (cgi.self:match('([^/]+)$')) or ''
 cgi.basedir = (cgi.self:match('(.*)/[^/]+$')) or ''
 
