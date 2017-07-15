@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #define NO_FCGI_DEFINES
 #include <fcgi_stdio.h>
 
@@ -32,19 +36,45 @@ static void *l_alloc (void *memory_limit, void *ptr, size_t osize, size_t nsize)
     return realloc(ptr, nsize);
 }
 
+int forkme(int nforks)
+{
+    while (nforks--) {
+        pid_t pid = fork();
+
+        if (pid == 0) {
+            int fd_null = open("/dev/null", O_RDWR);
+
+            dup2(fd_null, 1);
+            dup2(fd_null, 2);
+
+            for (int i = 3; i <= fd_null; i++)
+                close(i);
+
+            return 0;
+        } else {
+            fprintf(stdout, "lwp-cgi[%d] Worker spawned.\n", pid);
+        }
+    }
+
+    close(0);
+
+    return 1;
+}
+
 int main(int argc, char **argv)
 {
     lua_State *L = NULL;
     int debug = 0;
     intptr_t memory_limit = 64 * 1024 * 1024;
     int reuse = 0, nreq = 0;
+    int nforks = 0;
 
     const char *bootstrap_path = NULL;
 
     int c;
 
     /* parse options */
-    while ((c = getopt(argc, argv, "dm:r:")) >= 0) {
+    while ((c = getopt(argc, argv, "dm:r:F:")) >= 0) {
         switch (c) {
             case 'd':
                 debug = 1;
@@ -58,9 +88,21 @@ int main(int argc, char **argv)
                 reuse = strtol(optarg, NULL, 10);
                 break;
 
+            case 'F':
+                nforks = strtol(optarg, NULL, 10);
+                if (nforks > 64) nforks = 64;
+                if (nforks < 0) nforks = 0;
+                break;
+
             case '?':
             default:
                 break;
+        }
+    }
+
+    if (nforks > 0) {
+        if (forkme(nforks)) {
+            return 0;
         }
     }
 
