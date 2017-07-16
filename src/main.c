@@ -27,10 +27,12 @@ void redir_install(lua_State *L);
 
 static void *l_alloc (void *memory_limit, void *ptr, size_t osize, size_t nsize)
 {
+    (void)(osize);
+
     if (nsize == 0) {
 	free(ptr);
 	return NULL;
-    } else if (nsize > (intptr_t)memory_limit) {
+    } else if (nsize > (size_t)memory_limit) {
         return NULL;
     }
 

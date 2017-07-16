@@ -27,7 +27,7 @@ int cache_init()
     luaL_openlibs(cache);
 
 #ifdef WITH_LWP
-    if (luaL_loadbuffer(cache, lwp_lua, lwp_lua_len, "lwp.lua") != LUA_OK) {
+    if (luaL_loadbuffer(cache, (char *)lwp_lua, lwp_lua_len, "lwp.lua") != LUA_OK) {
         fprintf(stderr, "Lua Web Pages library load failed: %s\n", lua_tostring(cache, 1));
         goto error;
     }
@@ -40,7 +40,7 @@ int cache_init()
     lua_setglobal(cache, "lwp");
 #endif
 
-    if (luaL_loadbuffer(cache, cache_lua, cache_lua_len, "cache.lua") != LUA_OK) {
+    if (luaL_loadbuffer(cache, (char *)cache_lua, cache_lua_len, "cache.lua") != LUA_OK) {
         fprintf(stderr, "Cache library load failed: %s\n", lua_tostring(cache, 1));
         goto error;
     }
@@ -146,8 +146,6 @@ error:
 
 static int lua_cache_searcher(lua_State *L)
 {
-    char *data;
-    size_t size;
     const char *modname, *paths;
     const char *script;
 
@@ -173,9 +171,6 @@ static int lua_cache_searcher(lua_State *L)
 
 static int lua_cache_loadfile(lua_State *L)
 {
-    int nret = 2;
-    char *data = NULL;
-    size_t size;
     const char *filename;
     const char *script;
 
@@ -192,15 +187,10 @@ static int lua_cache_loadfile(lua_State *L)
         lua_pushnil(L);
         lua_pushvalue(L, -2);
         lua_remove(L, -3);
-        goto error;
+        return 2;
     }
 
-    nret = 1;
-error:
-    if (data)
-        free(data);
-
-    return nret;
+    return 1;
 }
 
 int cache_install(lua_State *L)
@@ -223,6 +213,7 @@ int cache_install(lua_State *L)
     /* override loadfile() with our cache implementation */
     lua_pushcfunction(L, lua_cache_loadfile);
     lua_setglobal(L, "loadfile");
+    return 1;
 }
 
 void cache_gc(int timeout)

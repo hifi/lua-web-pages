@@ -71,7 +71,7 @@ static int lua_fcgi_read_stdin(lua_State *L)
 int redir_install(lua_State *L)
 {
     /* load I/O redirection */
-    if (luaL_loadbuffer(L, redir_lua, redir_lua_len, "redir.lua") != LUA_OK) {
+    if (luaL_loadbuffer(L, (char *)redir_lua, redir_lua_len, "redir.lua") != LUA_OK) {
         fprintf(stderr, "redir.lua load failed: %s\n", lua_tostring(L, -1));
         return 0;
     }

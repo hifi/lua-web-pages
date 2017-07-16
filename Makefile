@@ -3,7 +3,7 @@ LUA         ?= lua
 LUAC        ?= luac
 OUTPUT       = lwp-cgi
 OBJS         = src/main.o src/redir.o src/cache.o
-CFLAGS      ?= -O3 -I.
+CFLAGS      ?= -O3 -I. -std=c99 -Wall -Wextra -pedantic
 CFLAGS      += $(shell pkg-config --cflags lua)
 LIBS        += $(shell pkg-config --libs lua) -lfcgi
 
