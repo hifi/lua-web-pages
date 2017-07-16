@@ -1,0 +1,35 @@
+Name:		lua-web-pages
+Version:	@VERSION@
+Release:	0.@REVISION@.git@COMMIT@%{?dist}
+Summary:	Lua Web Pages FastCGI service
+License:	MIT
+URL:		https://github.com/hifi/lua-web-pages
+Source0:	lua-web-pages-@VERSION@-@REVISION@-@COMMIT@.tar.gz
+
+BuildRequires:	lua
+BuildRequires:	lua-devel
+BuildRequires:	fcgi-devel
+
+%description
+Lua Web Pages thing
+
+%prep
+%setup -n lua-web-pages-@VERSION@-@REVISION@-@COMMIT@
+
+%build
+make %{?_smp_mflags}
+
+%install
+%make_install PREFIX=/usr
+
+%files
+%doc README
+%license LICENSE
+%{_bindir}/lwp-cgi
+%{_datadir}/lua-web-pages
+%{_unitdir}/lwp-httpd.socket
+%{_unitdir}/lwp-httpd.service
+
+%changelog
+* @DATE@ Toni Spets <toni.spets@iki.fi> @VERSION@-0.@REVISION@.git@COMMIT@
+- Automatic SRPM build from git

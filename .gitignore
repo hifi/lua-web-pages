@@ -1,5 +1,6 @@
 /lwp-cgi
-src/*.o
-src/*.luac
-src/*.luac.h
+/src/*.o
+/src/*.luac
+/src/*.luac.h
 /etc/lwp-httpd.service
+/lua-web-pages.spec
