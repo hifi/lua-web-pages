@@ -11,7 +11,7 @@
 #endif
 
 /* embedded luac output */
-#include "redir_lua.h"
+#include "redir.luac.h"
 
 static int lua_fcgi_write_stdout(lua_State *L)
 {

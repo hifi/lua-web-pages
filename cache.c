@@ -8,14 +8,14 @@
 
 /* embedded luac output */
 #ifdef WITH_LWP
-    #include "lwp_lua.h"
+    #include "lwp.luac.h"
 #endif
 
 #ifndef LUA_OK
 #define LUA_OK 0
 #endif
 
-#include "cache_lua.h"
+#include "cache.luac.h"
 
 static lua_State *cache;
 
