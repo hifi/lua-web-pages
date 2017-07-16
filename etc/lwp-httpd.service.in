@@ -1,0 +1,12 @@
+[Unit]
+Description=Lua Web Pages FastCGI service for httpd
+
+[Service]
+Type=forking
+ExecStart=@PREFIX@/bin/lwp-cgi -F 4 @PREFIX@/share/lwp-cgi/cgi.lua
+User=apache
+Group=apache
+StandardInput=socket
+
+[Install]
+WantedBy=multi-user.target

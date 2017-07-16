@@ -1,0 +1,12 @@
+[Unit]
+Description=Lua Web Pages FastCGI socket for httpd
+
+[Socket]
+SocketUser=apache
+SocketGroup=apache
+SocketMode=0600
+ListenStream=/var/run/lwp-httpd.socket
+Accept=false
+
+[Install]
+WantedBy=sockets.target

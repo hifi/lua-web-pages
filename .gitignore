@@ -2,3 +2,4 @@
 src/*.o
 src/*.luac
 src/*.luac.h
+/etc/lwp-httpd.service
