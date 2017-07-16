@@ -9,7 +9,9 @@ if #arg < 1 then
     return 1
 end
 
-print('unsigned char ' .. arg[1] .. '[] = {')
+local v = arg[1]:gsub('[^/]*/', '')
+
+print('unsigned char ' .. v .. '[] = {')
 
 local i = 0
 
@@ -29,4 +31,4 @@ while true do
 end
 
 print('};')
-print('unsigned int ' .. arg[1] .. '_len = ' .. i .. ';')
+print('unsigned int ' .. v .. '_len = ' .. i .. ';')

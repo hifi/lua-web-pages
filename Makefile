@@ -2,8 +2,8 @@ CC          ?= cc
 LUA         ?= lua
 LUAC        ?= luac
 OUTPUT       = lwp-cgi
-OBJS         = main.o redir.o cache.o
-CFLAGS      ?= -O3
+OBJS         = src/main.o src/redir.o src/cache.o
+CFLAGS      ?= -O3 -I.
 CFLAGS      += $(shell pkg-config --cflags lua)
 LIBS        += $(shell pkg-config --libs lua) -lfcgi
 
@@ -15,8 +15,8 @@ all: lwp-cgi
 %.luac.h: %.luac
 	$(LUA) xxd.lua $(basename $(basename $@))_lua > $@ < $<
 
-redir.o: redir.c redir.luac.h
-cache.o: cache.c cache.luac.h lwp.luac.h
+src/redir.o: src/redir.c src/redir.luac.h
+src/cache.o: src/cache.c src/cache.luac.h src/lwp.luac.h
 
 lwp-cgi: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $? $(LIBS)
@@ -24,4 +24,4 @@ lwp-cgi: $(OBJS)
 all: lwp-cgi
 
 clean:
-	rm -f $(OUTPUT) $(OBJS) *.luac *.luac.h
+	rm -f $(OUTPUT) $(OBJS) src/*.luac src/*.luac.h
