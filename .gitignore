@@ -1,0 +1,4 @@
+/lwp-cgi
+src/*.o
+src/*.luac
+src/*.luac.h
