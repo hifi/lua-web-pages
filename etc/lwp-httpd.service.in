@@ -3,7 +3,7 @@ Description=Lua Web Pages FastCGI service for httpd
 
 [Service]
 Type=forking
-ExecStart=@PREFIX@/bin/lwp-cgi -F 4 @PREFIX@/share/lwp-cgi/cgi.lua
+ExecStart=@PREFIX@/bin/lwp-cgi -F 4 @PREFIX@/share/lua-web-pages/cgi.lua
 User=apache
 Group=apache
 StandardInput=socket
